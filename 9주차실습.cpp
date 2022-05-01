@@ -30,6 +30,7 @@ public:
 		x = -1;
 		y = -1;
 	}
+
 	~Point5D() {};
 
 	void accumPt(Point5D Pt) {
