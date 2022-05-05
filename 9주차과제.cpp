@@ -8,17 +8,14 @@ using namespace cv;
 using namespace std;
 
 
-
-
 void grabCut() {
 	Mat img = imread("lab7/fruit.jpg");
 
 	resize(img, img, Size(256, 256), 0, 0, CV_INTER_AREA);
-	imshow("src", img);
 	if (img.empty()) exit(-1);
 
-
-	Rect rect = Rect(Point(0, 0), Point(200, 200));
+	int x1 = 30, y1 = 20, x2 = 190, y2 = 256;
+	Rect rect = Rect(Point(x1, y1), Point(x2, y2));
 
 	Mat result, bg_model, fg_model;
 
@@ -33,8 +30,11 @@ void grabCut() {
 	Mat mask(img.size(), CV_8UC3, cv::Scalar(255, 255, 255));
 	img.copyTo(mask, result);
 
-	imshow("mask", result);
-	imshow("dst", mask);
+	rectangle(img, Rect(Point(x1, y1), Point(x2, y2)), Scalar(255, 0, 0));
+
+	imshow("mask", mask);
+	imshow("img", img);
+	imshow("result", result);
 	waitKey();
 	destroyAllWindows();
 }
