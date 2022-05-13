@@ -17,7 +17,7 @@ Mat cvHarrisCorner(Mat &img) {
 	cvtColor(img, gray, CV_BGR2GRAY);
 
 	Mat harr;
-	cornerHarris(gray, harr, 3, 5, 0.02, 4);
+	cornerHarris(gray, harr, 4, 5, 0.02, 4);
 	normalize(harr, harr, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
 
 	Mat harr_abs;

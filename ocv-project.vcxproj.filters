@@ -27,5 +27,11 @@
     <ClCompile Include="10주차과제.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="11주차실습.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="11주차과제.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
