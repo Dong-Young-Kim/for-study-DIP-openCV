@@ -70,6 +70,34 @@ Mat cvPerspective(Mat& src) {
 
 }
 
+Mat cvHarrisCorner(Mat& img) {
+	resize(img, img, Size(500, 500), 0, 0, INTER_CUBIC);
+
+	Mat gray;
+	cvtColor(img, gray, CV_BGR2GRAY);
+
+	Mat harr;
+	cornerHarris(gray, harr, 4, 5, 0.02, 4);
+	normalize(harr, harr, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+
+	Mat harr_abs;
+	convertScaleAbs(harr, harr_abs);
+
+	int thresh = 125;
+	Mat result = img.clone();
+	int i = 0;
+	for (int y = 0; y < harr.rows; y++) {
+		for (int x = 0; x < harr.cols; x++) {
+			if ((int)harr.at<float>(y, x) > thresh) {
+				circle(result, Point(x, y), 7, Scalar(255, 0, 255), 0, 4, 0);
+				i++;
+			}
+		}
+	}
+	cout << i << endl;
+	return result;
+}
+
 void hw1() {
 	Mat src = imread("lab9/Lenna.png", 1);
 
@@ -86,10 +114,12 @@ void hw1() {
 void hw2() {
 	Mat src = imread("lab9/card_per.png", 1);
 
+	Mat harr_dst = cvHarrisCorner(src);
+
 	Mat dst = cvPerspective(src);
 
 	imshow("nonper", src);
-	imshow("per", dst);
+	imshow("per", harr_dst);
 	waitKey();
 	destroyAllWindows();
 }
