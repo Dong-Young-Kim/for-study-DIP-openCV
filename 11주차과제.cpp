@@ -78,8 +78,8 @@ Mat cvHarrisCorner(Mat& img) {
 
 	Mat harr;
 	cornerHarris(gray, harr, 4, 5, 0.03, 4);
-	imshow("test", harr);
-	waitKey(0);
+	/*imshow("test", harr);
+	waitKey(0);*/
 
 	normalize(harr, harr, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
 
