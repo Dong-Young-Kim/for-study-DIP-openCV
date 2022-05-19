@@ -17,13 +17,13 @@ Mat cvHarrisCorner(Mat &img) {
 	cvtColor(img, gray, CV_BGR2GRAY);
 
 	Mat harr;
-	cornerHarris(gray, harr, 4, 5, 0.02, 4);
+	cornerHarris(gray, harr, 4, 3, 0.03, 4);
 	normalize(harr, harr, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
 
 	Mat harr_abs;
 	convertScaleAbs(harr, harr_abs);
 
-	int thresh = 125;
+	int thresh = 205;
 	Mat result = img.clone();
 	int i = 0;
 	for (int y = 0; y < harr.rows; y++) {

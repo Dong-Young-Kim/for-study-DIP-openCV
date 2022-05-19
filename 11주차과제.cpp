@@ -20,12 +20,12 @@ Mat cvRotation(Mat &src) {
 	return dst;
 }
 
-Mat myRotationMatrix(double theta, Mat& src) {
+Mat myRotationMatrix(Mat& src, double theta) {
 	
 	Mat matrix1 = (Mat_<double>(3, 3) <<
-		1,0,src.cols/2,
+		1, 0, src.cols/2,
 		0, 1, src.rows / 2,
-		0,0,1);
+		0, 0, 1);
 	Mat matrix2 = (Mat_<double>(3, 3) <<
 		 cos(theta * CV_PI / 180), sin(theta * CV_PI / 180), 0,
 		-sin(theta * CV_PI / 180), cos(theta * CV_PI / 180), 0,
@@ -39,10 +39,8 @@ Mat myRotationMatrix(double theta, Mat& src) {
 
 Mat myRotation(Mat& src) {
 	Mat dst, matrix;
-	double theta = 45;
-	matrix = myRotationMatrix(theta, src);
+	matrix = myRotationMatrix(src, 45);
 	warpPerspective(src, dst, matrix, src.size());
-
 	return dst;
 }
 
@@ -62,12 +60,10 @@ Mat cvPerspective(Mat& src) {
 	dst_p[3] = Point2f(480, 390);
 
 	matrix = getPerspectiveTransform(src_p, dst_p);
+	warpPerspective(src, dst, matrix, src.size());	
 
-	warpPerspective(src, dst, matrix, src.size());
-	
+	cout << matrix << endl;
 	return dst;
-
-
 }
 
 Mat cvHarrisCorner(Mat& img) {
@@ -77,7 +73,7 @@ Mat cvHarrisCorner(Mat& img) {
 	cvtColor(img, gray, CV_BGR2GRAY);
 
 	Mat harr;
-	cornerHarris(gray, harr, 4, 5, 0.03, 4);
+	cornerHarris(gray, harr, 4, 3, 0.03, 4);
 	/*imshow("test", harr);
 	waitKey(0);*/
 
@@ -86,19 +82,42 @@ Mat cvHarrisCorner(Mat& img) {
 	Mat harr_abs;
 	convertScaleAbs(harr, harr_abs);
 
-	int thresh = 125;
+	int thresh_max = 55;
+	int thresh_min = 50;
 	Mat result = img.clone();
 	int i = 0;
 	for (int y = 0; y < harr.rows; y++) {
 		for (int x = 0; x < harr.cols; x++) {
-			if ((int)harr.at<float>(y, x) > thresh) {
+			if ((int)harr.at<float>(y, x) > thresh_min && (int)harr.at<float>(y, x) < thresh_max) {
 				circle(result, Point(x, y), 7, Scalar(255, 0, 255), 0, 4, 0);
 				i++;
 			}
 		}
 	}
 	cout << i << endl;
+
+	//Mat cor;
+	//Mat msk;
+	//goodFeaturesToTrack(gray, cor, 4, 0.05, 30, msk, 3);
+
 	return result;
+}
+
+Mat corner_fast(Mat& src) {
+
+
+	vector<KeyPoint> keypoints;
+	FAST(src, keypoints, 60, true);
+
+	Mat gray;
+	cvtColor(src, gray, CV_BGR2GRAY);
+
+	for (KeyPoint kp : keypoints) {
+		Point pt(cvRound(kp.pt.x), cvRound(kp.pt.y));
+		circle(gray, pt, 7, Scalar(255, 0, 255), 0, 4, 0);
+	}
+
+	return gray;
 }
 
 void hw1() {
@@ -118,11 +137,13 @@ void hw2() {
 	Mat src = imread("lab9/card_per.png", 1);
 
 	Mat harr_dst = cvHarrisCorner(src);
+	Mat fast_dst = corner_fast(src);
 
 	Mat dst = cvPerspective(src);
 
 	imshow("nonper", src);
 	imshow("per", harr_dst);
+	imshow("fast_dst", dst);
 	waitKey();
 	destroyAllWindows();
 }
