@@ -114,45 +114,39 @@ Mat makePanorama(Mat& img_l, Mat& img_r, int thresh_dist, int min_matches) {
 	return img_pano_cut;
 }
 
-Mat findBook(Mat& backGnd, Mat& obj_book, int thresh_dist, int min_matches) {
+Mat findBook(Mat& img_l, Mat& img_r, int thresh_dist, int min_matches) {
 
-	Mat backGnd_gray, obj_gray;
-	cvtColor(backGnd, backGnd_gray, CV_BGR2GRAY);
-	cvtColor(obj_book, obj_gray, CV_BGR2GRAY);
+	Mat img_gray_l, img_gray_r;
+	cvtColor(img_l, img_gray_l, CV_BGR2GRAY);
+	cvtColor(img_r, img_gray_r, CV_BGR2GRAY);
 
-
-	//===================================================================
-	//sift를 이용한 특징점 추출
 	Ptr<SiftFeatureDetector> Detector = SiftFeatureDetector::create();
-		
-	vector<KeyPoint> kpts_backGnd, kpts_obj;
-	Detector->detect(backGnd_gray, kpts_backGnd);
-	Detector->detect(obj_gray, kpts_obj);
+	vector<KeyPoint> kpts_obj, kpts_scene;
+	Detector->detect(img_gray_l, kpts_obj);
+	Detector->detect(img_gray_r, kpts_scene);
 
-	Mat img_kpts_backGnd, img_kpts_book;
-	drawKeypoints(backGnd_gray, kpts_backGnd, img_kpts_backGnd, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
-	drawKeypoints(obj_gray, kpts_obj, img_kpts_book, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
-	imshow("img_kpts_l", img_kpts_backGnd);
-	imshow("img_kpts_r", img_kpts_book);
+	Mat img_kpts_l, img_kpts_r;
+	drawKeypoints(img_gray_l, kpts_obj, img_kpts_l, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
+	drawKeypoints(img_gray_r, kpts_scene, img_kpts_r, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
+	//imshow("img_kpts_l", img_kpts_l);
+	imshow("img_kpts_r", img_kpts_r);
 
 
 	Ptr<SiftDescriptorExtractor> Extractor = SiftDescriptorExtractor::create(100, 4, 3, false, true);
 
 	Mat img_des_obj, img_des_scene;
-	Extractor->compute(backGnd_gray, kpts_backGnd, img_des_obj);
-	Extractor->compute(obj_gray, kpts_obj, img_des_scene);
+	Extractor->compute(img_gray_l, kpts_obj, img_des_obj);
+	Extractor->compute(img_gray_r, kpts_scene, img_des_scene);
 
 	BFMatcher matcher(NORM_L2);
 	vector<DMatch> matches;
 	matcher.match(img_des_obj, img_des_scene, matches);
 
 	Mat img_matches;
-	drawMatches(backGnd_gray, kpts_backGnd, obj_gray, kpts_obj,
+	drawMatches(img_gray_l, kpts_obj, img_gray_r, kpts_scene,
 		matches, img_matches, Scalar::all(-1), Scalar::all(-1),
 		vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-	imshow("img_matches", img_matches);
-
-
+	//imshow("img_matches", img_matches);
 
 	double dist_min = matches[0].distance;
 	double dist_max = matches[0].distance;
@@ -177,64 +171,59 @@ Mat findBook(Mat& backGnd, Mat& obj_book, int thresh_dist, int min_matches) {
 	} while (thresh_dist != 2 && matches_good.size() > min_matches);
 
 	Mat img_matches_good;
-	drawMatches(backGnd_gray, kpts_backGnd, obj_gray, kpts_obj,
+	drawMatches(img_gray_l, kpts_obj, img_gray_r, kpts_scene,
 		matches_good, img_matches_good, Scalar::all(-1), Scalar::all(-1),
 		vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 	imshow("img_matches_good", img_matches_good);
-
-	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+	imwrite("lab10/img_matches_good.jpg", img_matches_good);
 
 
 
 	vector<Point2f>obj, scene;
 	for (int i = 0; i < matches_good.size(); i++) {
-		obj_book.push_back(kpts_backGnd[matches_good[i].queryIdx].pt);
-		scene.push_back(kpts_obj[matches_good[i].trainIdx].pt);
+		obj.push_back(kpts_obj[matches_good[i].queryIdx].pt);
+		scene.push_back(kpts_scene[matches_good[i].trainIdx].pt);
 	}
 
-	Mat mat_homo = findHomography(scene, obj_book, RANSAC);
+	Mat mat_homo = findHomography(scene, obj, RANSAC);
 
+		
+	Mat img_rec(img_r.rows, img_r.cols, CV_8UC3);
+	rectangle(img_rec, Rect(0,0, img_r.cols, img_r.rows), Scalar(0,0,255), 50, 8, 0);
+	//imshow("img_rec", img_rec);
 
+	Mat img_trans;
+	warpPerspective(img_rec, img_trans, mat_homo,
+		Size(img_l.cols * 2, img_l.rows * 1.2), INTER_CUBIC);
+	imshow("img_res", img_trans);
 
-
-
-
-
-
-
-
-	Mat img_result;
-	warpPerspective(obj_book, img_result, mat_homo,
-		Size(backGnd.cols * 2, backGnd.rows * 1.2), INTER_CUBIC);
-
-	Mat img_pano = img_result.clone();
-
-	Mat roi(img_pano, Rect(0, 0, backGnd.cols, backGnd.rows));
-	backGnd.copyTo(roi);
-
-	int cut_x = 0, cut_y = 0;
-	for (int y = 0; y < img_pano.rows; y++) {
-		for (int x = 0; x < img_pano.cols; x++) {
-			if (img_pano.at<Vec3b>(y, x)[0] == 0 &&
-				img_pano.at<Vec3b>(y, x)[1] == 0 &&
-				img_pano.at<Vec3b>(y, x)[2] == 0) {
-				continue;
+	
+	//해당 부분이 책의 경계이면 지정된 색으로 표시
+	for (int y = 0; y < img_l.rows; y++) {
+		for (int x = 0; x < img_l.cols; x++) {
+			if (img_trans.at<Vec3b>(y, x)[0] == 0 &&
+				img_trans.at<Vec3b>(y, x)[1] == 0 &&
+				img_trans.at<Vec3b>(y, x)[2] == 255) {
+				img_l.at<Vec3b>(y, x)[0] = 255;
+				img_l.at<Vec3b>(y, x)[1] = 255;
+				img_l.at<Vec3b>(y, x)[2] = 0;
+				
 			}
-			if (cut_x < x) cut_x = x;
-			if (cut_y < y) cut_y = y;
 		}
 	}
-	Mat img_pano_cut = img_pano(Range(0, cut_y), Range(0, cut_x));
-	//imshow("img_pano_cut", img_pano_cut);
-	return img_pano_cut;
+
+	//imshow("img_res", img_l);
+
+	return img_l;
 }
+
+
 
 void hw2() {
 	Mat matImg1 = imread("lab10/Scene.jpg", IMREAD_COLOR);
 	Mat matImg2 = imread("lab10/Book1.jpg", IMREAD_COLOR);
 
-	Mat res = makePanorama(matImg1, matImg2, 3, 60);
+	Mat res = findBook(matImg1, matImg2, 3, 60);
 	imshow("panorama_res", res);
 	waitKey();
 
@@ -258,7 +247,8 @@ void ex_panorama() {
 	res = makePanorama(res, matImg3, 3, 60);
 
 	imshow("panorama_res", res);
-	waitKey();
+	imwrite("lab10/panorama_res.jpg", res);
+		waitKey();
 
 }
 
@@ -280,9 +270,10 @@ void ex_panorama_simple() {
 		exit(-1);
 	}
 	imshow("res", res);
+	imwrite("lab10/panorama_simple.jpg", res);
 	waitKey();
 }
 
 int main() {
-	ex_panorama_simple();
+	hw2();
 }
