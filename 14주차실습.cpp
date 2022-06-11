@@ -21,8 +21,8 @@ Mat GetHist(Mat src) {
 	cvtColor(src, src, CV_RGB2GRAY); //grey scale·Î º¯È¯
 	calcHist(&src, 1, channel_numbers, Mat(), histogram, 1, &number_bins, &channel_ranges);
 
-	int hist_w = 200;
-	int hist_h = 180;
+	int hist_w = 400;
+	int hist_h = 250;
 	int bin_w = cvRound((double)hist_w / number_bins);
 
 	Mat histImage(hist_h, hist_w, CV_8UC1, Scalar(0, 0, 0));

@@ -49,10 +49,10 @@ Mat GetHist(Mat src) {
 //}
 
 void readImagesAndTimes(vector<Mat>& images, vector<float>& times) {
-	int numImages = 3;
-	static const float timesArray[] = { 0.1, 0.3, 0.9f };
+	int numImages = 4;
+	static const float timesArray[] = { 0.01f, 0.06f, 0.12f, 1.00f };
 	times.assign(timesArray, timesArray + numImages);
-	static const char* filenames[] = { "lab12/img_60.jpg","lab12/img_200.jpg", "lab12/img_800.jpg" };
+	static const char* filenames[] = { "lab12/img_001.jpg","lab12/img_006.jpg", "lab12/img_012.jpg", "lab12/img_100.jpg" };
 	for (int i = 0; i < numImages; i++) {
 		Mat im = imread(filenames[i]);
 		images.push_back(im);
@@ -93,28 +93,27 @@ void HDRIMG() {
 
 	cout << "tonemapping using Drago's method ...  " << endl;
 	Mat IdrDrago;
-	Ptr<TonemapDrago> tonemapDrago = createTonemapDrago(1.0f, 0.7f, 0.85f);
+	Ptr<TonemapDrago> tonemapDrago = createTonemapDrago(1.3f, 1.25f, 0.85f);
 	tonemapDrago->process(hdrDebevec, IdrDrago);
 	IdrDrago = 3 * IdrDrago;
-	imwrite("lab12/Idr-Drago2.jpg", IdrDrago * 255);
+	imwrite("lab12/Idr-Drago3.jpg", IdrDrago * 255);
 	imshow("histDrago2", GetHist(IdrDrago * 255));
 
 
 	cout << "tonemapping using Reinhard's method ...  " << endl;
 	Mat IdrReinhard;
-	Ptr<TonemapReinhard> tonemapReinhard = createTonemapReinhard(1.5f, 0, 0, 0);
+	Ptr<TonemapReinhard> tonemapReinhard = createTonemapReinhard(2.0f, 0, 0, 0);
 	tonemapReinhard->process(hdrDebevec, IdrReinhard);
-	imwrite("lab12/Idr-Reinhard2.jpg", IdrReinhard * 255);
+	imwrite("lab12/Idr-Reinhard3.jpg", IdrReinhard * 255);
 	imshow("histReinhard2", GetHist(IdrReinhard * 255));
 
 	cout << "tonemapping using Mantiuk's method ...  " << endl;
 	Mat IdrMantiuk;
-	Ptr<TonemapMantiuk> tonemapMantiuk = createTonemapMantiuk(2.2f, 0.85f, 1.2f);
+	Ptr<TonemapMantiuk> tonemapMantiuk = createTonemapMantiuk(1.5f, 0.8f, 1.5f);
 	tonemapMantiuk->process(hdrDebevec, IdrMantiuk);
 	IdrMantiuk = 3 * IdrMantiuk;
-	imwrite("lab12/Idr-Mantiuk2.jpg", IdrMantiuk * 255);
+	imwrite("lab12/Idr-Mantiuk3.jpg", IdrMantiuk * 255);
 	imshow("histMantiuk", GetHist(IdrMantiuk * 255));
-
 
 	//waitKey();
 
@@ -122,9 +121,10 @@ void HDRIMG() {
 }
 
 int main() {
-	imshow("hist60", GetHist(imread("lab12/img_60.jpg", IMREAD_COLOR)));
-	imshow("hist200", GetHist(imread("lab12/img_200.jpg", IMREAD_COLOR)));
-	imshow("hist800", GetHist(imread("lab12/img_800.jpg", IMREAD_COLOR)));
+	imshow("hist001", GetHist(imread("lab12/img_001.jpg", IMREAD_COLOR)));
+	imshow("hist006", GetHist(imread("lab12/img_006.jpg", IMREAD_COLOR)));
+	imshow("hist012", GetHist(imread("lab12/img_012.jpg", IMREAD_COLOR)));
+	imshow("hist100", GetHist(imread("lab12/img_100.jpg", IMREAD_COLOR)));
 
 	HDRIMG();
 
