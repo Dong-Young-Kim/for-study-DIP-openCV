@@ -100,7 +100,7 @@ void countRGB(const Mat& img, int& count_R, int& count_G, int& count_B) {
 }
 
 void hw1(){
-	Mat src_img = imread("image/img1.jpg", 1);
+	Mat src_img = imread("images/lab2/img1.jpg", 1);
 
 	SpreadRGB(src_img, 180, 150, 100);
 
@@ -166,7 +166,7 @@ void hw3() {
 
 int main() {
 
-	hw3();
+	hw1();
 
 	return 0;
 }
