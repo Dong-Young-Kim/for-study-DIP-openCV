@@ -1,5 +1,67 @@
 # LAB2
 
+## OpenCV API
+
+- Intel에서 개발을 주도한 오픈소스 컴퓨터 비전 라이브러리.
+- 영상처리, 컴퓨터 비전에 에 필요한 기본적인 기능들을 포함하고 있다.
+- 다양한 플랫폼 지원(Windows, Linux, Android 등)
+- 다양한 언어 지원(C/C++, Python, Java 등)
+
+공식 홈페이지: https://opencv.org/
+
+
+### 설치
+
+TODO..
+
+### OpenCV API Search
+https://docs.opencv.org/3.4.13/index.html
+
+
+## 사용
+
+### Mat Class
+
+OpenCV에서 이미지와 이미지의 정보(사이즈 등)를 담게 되는 클래스
+
+https://docs.opencv.org/3.4.13/d6/d6d/tutorial_mat_the_basic_image_container.html
+
+
+```cpp
+Mat A, C; // creates just the header parts
+A = imread(argv[1], IMREAD_COLOR); // here we'll know the method used (allocate matrix)
+
+Mat B(A); // Use the copy constructor
+C = A; // Assignment operator
+```
+
+### Input / Output
+
+```cpp
+#include <iostream>
+#include "opencv2/core/core.hpp" // Mat class와 각종 data structure 및 산술 루틴을 포함하는 헤더
+#include "opencv2/highgui/highgui.hpp" // GUI와 관련된 요소를 포함하는 헤더(imshow 등)
+#include "opencv2/imgproc/imgproc.hpp" // 각종 이미지 처리 함수를 포함하는 헤더
+
+using namespace cv;
+using namespace std;
+
+int main() 
+{
+	Mat src_img = imread("landing.jpg", 0); // 이미지 읽기
+	// int flags = IMREAD_COLOR 또는 int flags = 1 -> 컬러 영상으로 읽음
+	// int flags = IMREAD_GRAYSCALE 또는 int flags = 0 -> 흑백 영상으로 읽음
+	// int flags = IMREAD_UNCHANGED 또는 int flags = -1 -> 원본 영상의 형식대로 읽음
+	
+	imshow("Test window", src_img); // 이미지 출력
+	waitKey(0); // 키 입력 대기(0: 키가 입력될 때 까지 프로그램 멈춤)
+	destroyWindow("Test window"); // 이미지 출력창 종료
+	
+	imwrite("langding_gray.png", src_img); // 이미지 쓰기
+
+return 0;
+}
+```
 
 
 ## Additional
